@@ -25,10 +25,17 @@ A Jest custom reporter that tracks and aggregates console calls (`log`, `warn`, 
    }
    ```
 
+   Or via CLI:
+   ```bash
+   jest --reporters=default --reporters=<rootDir>/path/to/reporter.js
+   ```
+
 3. Run your tests:
    ```bash
    npm test
    ```
+
+4. Check the output in console and potentially view the generated report under /coverage
 
 ## Requirements
 
@@ -145,8 +152,8 @@ The reporter provides a concise summary at the end of your test run:
   warn: 4
   debug: 2
   info: 3
-  error: "Payment gateway timeout" - 1
-  warn: "Retrying payment" - 1
+  top error: "Payment gateway timeout" - 1
+  top warn: "Retrying payment" - 1
 
 Full summary available in /tmp/demo-project/coverage/console-count-summary.md
 ```
@@ -192,67 +199,6 @@ The markdown report includes:
 - **Summary table**: Total counts per console method
 - **Top messages**: Up to 5 most frequent messages per method
 - **File breakdown**: Which files generated each message and how many times
-
-## Configuration Options
-
-The reporter includes several configuration options that can be modified:
-
-### Markdown Report Threshold
-
-The markdown report is only generated when console calls come from 5 or more different files. This behavior is controlled in `reporter.js`:
-
-```javascript
-const shouldWriteMarkdown = allFiles.length >= 5
-```
-
-### MAX_FILES Display Limit
-
-By default, the reporter shows up to 5 files per console message in the markdown report:
-
-```javascript
-const MAX_FILES = 5 // Maximum number of files to show in a single section
-```
-
-### Tracked Console Methods
-
-The setup tracks these console methods by default:
-
-```javascript
-const methods = ['log', 'warn', 'error', 'info', 'debug']
-```
-
-### Color Customization
-
-Colors are defined in `colorPrefix.js` and use ANSI color codes:
-
-```javascript
-// Current color scheme:
-// error: red background, white text ('41;97')
-// warn: yellow background, black text ('43;30') 
-// info: cyan background, black text ('46;30')
-// log: grey background, black text ('47;30')
-```
-
-## API Reference
-
-### ConsoleCountReporter
-
-The main reporter class that extends Jest's `BaseReporter`.
-
-#### Methods
-
-- `onRunStart()`: Clears any previous aggregate files
-- `onRunComplete(contexts, results)`: Reads aggregate data and generates summaries
-- `readAggregate()`: Reads console count data from the temporary file
-- `logSummary(counts, files)`: Outputs colorized terminal summary
-- `writeMarkdownSummary(counts, files, outputPath)`: Generates markdown report
-
-### Setup Functions
-
-The setup file provides console interception:
-
-- `getCurrentTestFile()`: Determines the current test file for attribution
-- `writeAggregate(data)`: Writes count data to the shared temporary file
 
 ## Advanced Usage
 
