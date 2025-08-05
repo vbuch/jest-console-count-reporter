@@ -1,11 +1,18 @@
 // Jest custom reporter to aggregate and summarize all console calls across all test workers.
-// Reads the aggregate file written by the setup script and prints a colorized summary.
+// The aggregate file is written by the setup script and summarized here.
 
 const fs = require('fs')
 const path = require('path')
 const os = require('os')
 const { BaseReporter } = require('@jest/reporters')
 const colorPrefix = require('./colorPrefix')
+
+/**
+ * This reporter sets an environment variable to enable console counting in the setup script.
+ * We only replace console methods with counting versions when the reporter is in use,
+ * to avoid interfering with the traces of console calls during normal test runs.
+ */
+process.env.CONSOLE_COUNT_REPORTER_ENABLED = true
 
 // Path to the shared aggregate file in the OS temp directory
 const AGGREGATE_PATH = path.join(os.tmpdir(), 'jest-console-counts.json')
@@ -69,11 +76,11 @@ class ConsoleCountReporter extends BaseReporter {
       const topMsg = this.getTopMessagesByMethod(counts, 1)
       if (topMsg.error && topMsg.error.length > 0) {
         const [msg, count] = topMsg.error[0]
-        buffer += `\n` + colorPrefix('error', 'error:') + ` "${msg}" - ${count}`
+        buffer += `\n` + colorPrefix('error', 'top error:', count) + ` "${msg}"`
       }
       if (topMsg.warn && topMsg.warn.length > 0) {
         const [msg, count] = topMsg.warn[0]
-        buffer += `\n` + colorPrefix('warn', 'warn:') + ` "${msg}" - ${count}`
+        buffer += `\n` + colorPrefix('warn', 'top warn:', count) + ` "${msg}"`
       }
 
       if (shouldWriteMarkdown) {
