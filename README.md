@@ -2,6 +2,8 @@
 
 A Jest custom reporter that tracks and aggregates console calls (`log`, `warn`, `error`, `info`, `debug`) across all test workers, providing colorized summaries and detailed breakdowns to help you monitor and optimize console usage in your tests.
 
+**Note**: This is a copy-based tool, not an npm package. Copy the files to your project rather than installing as a dependency.
+
 ## Features
 
 - 🎯 **Comprehensive Tracking**: Monitors all console methods across all Jest test workers
@@ -13,14 +15,9 @@ A Jest custom reporter that tracks and aggregates console calls (`log`, `warn`, 
 
 ## Quick Start
 
-1. Install the dependency:
-   ```bash
-   npm install --save-dev @jest/reporters
-   ```
+1. Copy `reporter.js`, `setup.js`, `colorCode.js`, and `colorPrefix.js` to your project
 
-2. Copy `reporter.js`, `setup.js`, `colorCode.js`, and `colorPrefix.js` to your project
-
-3. Update your Jest config:
+2. Update your Jest config:
    ```json
    {
      "reporters": ["default", "<rootDir>/path/to/reporter.js"],
@@ -28,27 +25,21 @@ A Jest custom reporter that tracks and aggregates console calls (`log`, `warn`, 
    }
    ```
 
-4. Run your tests:
+3. Run your tests:
    ```bash
    npm test
    ```
 
 ## Requirements
 
-- **Jest**: Version 24+ (uses `@jest/reporters`)
+- **Jest**: Version 24+ (requires `@jest/reporters` which is included with Jest)
 - **Node.js**: Version 12+ 
 
 ## Installation
 
-### Dependencies
+**This reporter is designed to be copied into your project, not installed as a dependency.**
 
-The reporter requires `@jest/reporters` to be available in your project:
-
-```bash
-npm install --save-dev @jest/reporters
-```
-
-### Option 1: Copy Files Directly
+### Copy Files Directly
 
 Clone or download the repository and copy the files to your project:
 
@@ -57,9 +48,9 @@ Clone or download the repository and copy the files to your project:
 cp path/to/jest-console-count-reporter/*.js your-project/jest-reporters/
 ```
 
-### Option 2: Git Submodule
+### Alternative: Git Submodule
 
-Add as a git submodule:
+Add as a git submodule if you prefer to track updates:
 
 ```bash
 git submodule add https://github.com/vbuch/jest-console-count-reporter.git jest-reporters/console-count
@@ -307,9 +298,14 @@ fi
 
 ### Missing Dependency Error
 
-If you see `Cannot find module '@jest/reporters'`, install the required dependency:
+If you see `Cannot find module '@jest/reporters'`, this indicates an issue with your Jest installation. The `@jest/reporters` package is included with Jest itself:
 
 ```bash
+# Ensure Jest is properly installed
+npm install --save-dev jest
+
+# For newer Jest versions, @jest/reporters is included automatically
+# For older versions, you may need to install it separately
 npm install --save-dev @jest/reporters
 ```
 
