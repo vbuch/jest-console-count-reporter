@@ -11,6 +11,28 @@ A Jest custom reporter that tracks and aggregates console calls (`log`, `warn`, 
 - 🚀 **Zero Configuration**: Works out of the box with minimal setup
 - 📈 **Performance Insights**: Identify which tests and files generate the most console output
 
+## Quick Start
+
+1. Install the dependency:
+   ```bash
+   npm install --save-dev @jest/reporters
+   ```
+
+2. Copy `reporter.js`, `setup.js`, `colorCode.js`, and `colorPrefix.js` to your project
+
+3. Update your Jest config:
+   ```json
+   {
+     "reporters": ["default", "<rootDir>/path/to/reporter.js"],
+     "setupFilesAfterEnv": ["<rootDir>/path/to/setup.js"]
+   }
+   ```
+
+4. Run your tests:
+   ```bash
+   npm test
+   ```
+
 ## Requirements
 
 - **Jest**: Version 24+ (uses `@jest/reporters`)
@@ -42,6 +64,17 @@ Add as a git submodule:
 ```bash
 git submodule add https://github.com/vbuch/jest-console-count-reporter.git jest-reporters/console-count
 ```
+
+### Files Included
+
+The reporter consists of four files that work together:
+
+- **`reporter.js`**: Main Jest reporter class (required)
+- **`setup.js`**: Console interception setup (required)
+- **`colorCode.js`**: ANSI color utility (required)
+- **`colorPrefix.js`**: Color formatting helper (required)
+
+All four files must be available in your project for the reporter to function correctly.
 
 ## Configuration
 
@@ -97,6 +130,8 @@ The jest-console-count-reporter works by:
 4. **Reporting**: The reporter reads the aggregate data and displays summaries
 
 **Important**: The setup file must be included in `setupFilesAfterEnv` for the reporter to function correctly.
+
+**Note**: The temporary aggregate file is automatically cleaned up at the start of each test run.
 
 ## Usage
 
@@ -269,6 +304,14 @@ fi
 
 - Confirm that `expect.getState()` is available in your Jest environment
 - Ensure tests are running with proper Jest context
+
+### Missing Dependency Error
+
+If you see `Cannot find module '@jest/reporters'`, install the required dependency:
+
+```bash
+npm install --save-dev @jest/reporters
+```
 
 ### Colors Not Showing
 
