@@ -15,41 +15,66 @@ const origConsole = {}
 const methods = ['log', 'warn', 'error', 'info', 'debug']
 
 /**
+ * Only replace console methods with counting versions when the reporter is in use.
+ * This avoids messing up the traces of console calls during normal test runs.
+ */
+if (process.env.CONSOLE_COUNT_REPORTER_ENABLED) {
+  patchConsoleForCounting()
+  afterAll(aggregateConsoleCounts)
+}
+
+/**
  * Returns the last two path segments of the current test file for disambiguation.
  * Falls back to '<unknown>' if not available.
  */
 function getCurrentTestFile() {
   try {
-    if (typeof expect !== 'undefined' && expect.getState) {
-      const testPath = expect.getState().testPath
-      if (testPath) {
-        const parts = testPath.split(path.sep)
-        if (parts.length >= 2) return parts.slice(-2).join('/')
-        return parts[0]
-      }
+    if (typeof expect === 'undefined' || !expect.getState) {
+      return '<unknown>'
     }
-  } catch {}
-  return '<unknown>'
+
+    const testPath = expect.getState().testPath
+    if (!testPath) {
+      return '<unknown>'
+    }
+
+    const parts = testPath.split(path.sep)
+    if (parts.length < 2) {
+      return parts[0]
+    }
+
+    return parts.slice(-2).join('/')
+  } catch {
+    return '<unknown>'
+  }
 }
 
-// Patch each console method to count calls and forward to the original
-methods.forEach((method) => {
-  origConsole[method] = console[method]
-  console[method] = (...args) => {
-    const key = args.length > 0 ? String(args[0]).split('\n')[0] : '<empty>'
-    const countKey = `${method}: ${key}`
-    globalConsoleCounts[countKey] = (globalConsoleCounts[countKey] || 0) + 1
-    // Per-file
-    const file = getCurrentTestFile()
-    if (!fileConsoleCounts[countKey]) fileConsoleCounts[countKey] = {}
-    fileConsoleCounts[countKey][file] =
-      (fileConsoleCounts[countKey][file] || 0) + 1
-    origConsole[method].apply(console, args)
-  }
-})
+/**
+ * Encapsulate console patching in a function and call it
+ */
+function patchConsoleForCounting() {
+  // Patch each console method to count calls and forward to the original
+  methods.forEach((method) => {
+    origConsole[method] = console[method]
+    console[method] = (...args) => {
+      const key = args.length > 0 ? String(args[0]).split('\n')[0] : '<empty>'
+      const countKey = `${method}: ${key}`
+      globalConsoleCounts[countKey] = (globalConsoleCounts[countKey] || 0) + 1
 
-// After all tests in this worker, merge counts into the aggregate file
-afterAll(() => {
+      // Per-file
+      const file = getCurrentTestFile()
+      if (!fileConsoleCounts[countKey]) fileConsoleCounts[countKey] = {}
+      fileConsoleCounts[countKey][file] =
+        (fileConsoleCounts[countKey][file] || 0) + 1
+      origConsole[method].apply(console, args)
+    }
+  })
+}
+
+/**
+ * After all tests in this worker, merge counts into the aggregate file
+ */
+function aggregateConsoleCounts() {
   let allCounts = {}
   let allFiles = {}
   try {
@@ -59,9 +84,11 @@ afterAll(() => {
       allFiles = parsed.files || {}
     }
   } catch {}
+
   for (const key in globalConsoleCounts) {
     allCounts[key] = (allCounts[key] || 0) + globalConsoleCounts[key]
   }
+
   for (const key in fileConsoleCounts) {
     if (!allFiles[key]) allFiles[key] = {}
     for (const file in fileConsoleCounts[key]) {
@@ -69,6 +96,7 @@ afterAll(() => {
         (allFiles[key][file] || 0) + fileConsoleCounts[key][file]
     }
   }
+
   try {
     fs.writeFileSync(
       AGGREGATE_PATH,
@@ -76,5 +104,4 @@ afterAll(() => {
       'utf8'
     )
   } catch {}
-  // No per-worker output: only aggregate and count, no summary printed here.
-})
+}
